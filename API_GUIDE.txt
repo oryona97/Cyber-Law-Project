@@ -1,0 +1,86 @@
+API Interaction Guide for CyberLaw Project
+==========================================
+
+Based on your `docker-compose.yml`, the backend is exposed on **port 5001** (mapped to internal port 5000).
+
+Base URL
+--------
+`http://localhost:5001`
+
+1. Health Check
+---------------
+Verify the server is running.
+
+**Request:**
+curl http://localhost:5001/
+
+**Expected Response:**
+{
+  "message": "Cyber Law Project Backend is running"
+}
+
+2. AI Chat (Direct API)
+-----------------------
+Send a message directly to the AI service without going through WhatsApp.
+
+**Request:**
+curl -X POST http://localhost:5001/api/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{ 
+    "message": "What are the laws regarding data privacy?", 
+    "topicId": 1 
+  }'
+
+*Note: `topicId` is optional. It selects a specific legal persona if configured.*
+
+**Expected Response:**
+{
+  "reply": "Data privacy laws vary by jurisdiction, but generally..."
+}
+
+3. WhatsApp Webhook (Simulate Incoming Message)
+-----------------------------------------------
+Simulate a message arriving from WhatsApp. This triggers the full flow: creating a user, saving the message to the DB, generating an AI response, and attempting to send a reply back via WhatsApp.
+
+**Request:**
+curl -X POST http://localhost:5001/api/whatsapp/webhook \
+  -H "Content-Type: application/json" \
+  -d '{ 
+    "object": "whatsapp_business_account", 
+    "entry": [ 
+      { 
+        "changes": [ 
+          { 
+            "value": { 
+              "messages": [ 
+                { 
+                  "from": "972500000000", 
+                  "text": { 
+                    "body": "I need help with a contract." 
+                  } 
+                } 
+              ] 
+            } 
+          } 
+        ] 
+      } 
+    ] 
+  }'
+
+**Expected Response:**
+*   **HTTP Status:** `200 OK`
+*   **Body:** `OK` (or empty)
+*   **Server Logs:** You will see logs indicating the message was processed, the AI replied, and an attempt was made to send the response back to `972500000000`.
+
+4. WhatsApp Verification (Handshake)
+------------------------------------
+This is used by Meta to verify your server ownership.
+
+**Request:**
+curl "http://localhost:5001/api/whatsapp/webhook?hub.mode=subscribe&hub.verify_token=CYBERLAW_VERIFY_TOKEN&hub.challenge=112233"
+
+*Note: The default token in your code is `CYBERLAW_VERIFY_TOKEN`.*
+
+**Expected Response:**
+112233
+*(It returns the `hub.challenge` value strictly).*
