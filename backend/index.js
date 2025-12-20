@@ -5,6 +5,8 @@ const { connectDB } = require('./config/database');
 const { sequelize } = require('./models'); // Import models to trigger sync
 const aiRoutes = require('./routes/aiRoutes');
 const whatsappRoutes = require('./routes/whatsappRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const secretaryRoutes = require('./routes/secretaryRoutes');
 const aiService = require('./services/aiService');
 const seedData = require('./utils/seed');
 
@@ -36,6 +38,8 @@ app.use(express.json());
 // Routes
 app.use('/api/ai', aiRoutes);
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/secretary', secretaryRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Cyber Law Project Backend is running' });
