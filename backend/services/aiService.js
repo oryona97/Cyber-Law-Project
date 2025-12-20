@@ -33,6 +33,55 @@ class AIService {
   }
 
   /**
+   * Generate a structured summary for a lead.
+   * @param {string} conversationHistory 
+   * @returns {Promise<Object>} { summary, urgency }
+   */
+  async generateLeadSummary(conversationHistory) {
+    try {
+      const systemPrompt = `You are a legal triage specialist.
+      Analyze the conversation history.
+      Return ONLY a JSON object with this format (no markdown, no extra text):
+      {
+        "summary": "Concise summary of the legal issue (max 2 sentences)",
+        "urgency": "High" | "Medium" | "Low"
+      }`;
+
+      const payload = {
+        model: this.model,
+        prompt: `Conversation History:\n${conversationHistory}\n\nProvide the JSON summary.`,
+        system: systemPrompt,
+        stream: false,
+        format: "json" // Request JSON format from Ollama if supported, otherwise the prompt helps.
+      };
+
+      const response = await axios.post(`${this.baseUrl}/api/generate`, payload);
+      let content = response.data.response;
+
+      try {
+        // Clean up potential markdown code blocks
+        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const jsonStart = content.indexOf('{');
+        const jsonEnd = content.lastIndexOf('}');
+        
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            content = content.substring(jsonStart, jsonEnd + 1);
+            return JSON.parse(content);
+        }
+        return JSON.parse(content);
+      } catch (parseError) {
+        console.warn("AI returned non-JSON summary:", content);
+        return { summary: content, urgency: "Medium" };
+      }
+
+    } catch (error) {
+      console.error('Error generating summary:', error.message);
+      return { summary: "Error generating summary.", urgency: "Medium" };
+    }
+  }
+
+  /**
    * Ensure the model is pulled and available.
    * Useful to call on startup.
    */

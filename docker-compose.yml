@@ -30,21 +30,6 @@ services:
       - /app/node_modules
     command: npm run dev -- --host
 
-  # n8n Service (Workflow Automation)
-  n8n:
-    image: docker.n8n.io/n8nio/n8n
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_HOST=${SUBDOMAIN}.loca.lt
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - NODE_ENV=production
-      - WEBHOOK_URL=https://${SUBDOMAIN}.loca.lt/
-      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
-    volumes:
-      - n8n_data:/home/node/.n8n
-
   # Database Service (PostgreSQL)
   db:
     image: postgres:15
@@ -66,6 +51,5 @@ services:
       - ollama_data:/root/.ollama
 
 volumes:
-  n8n_data:
   postgres_data:
   ollama_data:
