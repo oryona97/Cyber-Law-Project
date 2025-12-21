@@ -83,3 +83,51 @@ exports.assignLawyer = async (req, res) => {
     res.status(500).json({ error: 'Failed to assign lawyer' });
   }
 };
+
+/**
+ * POST /api/secretary/lawyers
+ * Create a new lawyer
+ */
+exports.createLawyer = async (req, res) => {
+  const { name, email, phone } = req.body;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Lawyer name is required' });
+  }
+
+  try {
+    const lawyer = await Lawyer.create({
+      name,
+      email,
+      phone,
+      is_active: true
+    });
+    res.status(201).json(lawyer);
+  } catch (error) {
+    console.error('Error creating lawyer:', error);
+    res.status(500).json({ error: 'Failed to create lawyer' });
+  }
+};
+
+/**
+ * DELETE /api/secretary/lawyers/:id
+ * Soft delete a lawyer (set is_active = false)
+ */
+exports.deleteLawyer = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const lawyer = await Lawyer.findByPk(id);
+    if (!lawyer) {
+      return res.status(404).json({ error: 'Lawyer not found' });
+    }
+
+    // Soft delete
+    await lawyer.update({ is_active: false });
+    
+    res.json({ message: 'Lawyer deactivated successfully' });
+  } catch (error) {
+    console.error('Error deleting lawyer:', error);
+    res.status(500).json({ error: 'Failed to delete lawyer' });
+  }
+};

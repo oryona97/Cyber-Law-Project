@@ -11,4 +11,10 @@ router.get('/lawyers', secretaryController.getAllLawyers);
 // Assign a lawyer to a lead
 router.post('/leads/:id/assign', secretaryController.assignLawyer);
 
+// Create a new Lawyer
+router.post('/lawyers', secretaryController.createLawyer);
+
+// Delete (Deactivate) a Lawyer
+router.delete('/lawyers/:id', secretaryController.deleteLawyer);
+
 module.exports = router;

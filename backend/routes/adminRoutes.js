@@ -11,4 +11,10 @@ router.put('/topics/:id', adminController.updateTopic);
 // Update an Expert Config
 router.put('/experts/:id', adminController.updateExpertConfig);
 
+// Create a new Topic
+router.post('/topics', adminController.createTopic);
+
+// Deactivate a Topic
+router.delete('/topics/:id', adminController.deleteTopic);
+
 module.exports = router;

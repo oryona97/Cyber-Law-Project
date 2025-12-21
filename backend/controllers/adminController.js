@@ -55,3 +55,56 @@ exports.updateExpertConfig = async (req, res) => {
     res.status(500).json({ error: 'Failed to update expert config' });
   }
 };
+
+/**
+ * POST /api/admin/topics
+ * Create a new Topic & Expert Config
+ */
+exports.createTopic = async (req, res) => {
+  const { name, description, system_prompt, max_depth } = req.body;
+
+  if (!name || !system_prompt) {
+    return res.status(400).json({ error: 'Name and System Prompt are required' });
+  }
+
+  try {
+    const topic = await Topic.create({
+      name,
+      description,
+      is_active: true
+    });
+
+    const expertConfig = await ExpertConfig.create({
+      topic_id: topic.id,
+      title: `${name} Expert`,
+      system_prompt,
+      max_depth: max_depth || 5
+    });
+
+    res.status(201).json({ topic, expertConfig });
+  } catch (error) {
+    console.error('Error creating topic:', error);
+    res.status(500).json({ error: 'Failed to create topic' });
+  }
+};
+
+/**
+ * DELETE /api/admin/topics/:id
+ * Soft delete (Deactivate) a topic
+ */
+exports.deleteTopic = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const topic = await Topic.findByPk(id);
+    if (!topic) {
+      return res.status(404).json({ error: 'Topic not found' });
+    }
+
+    await topic.update({ is_active: false });
+    res.json({ message: 'Topic deactivated successfully' });
+  } catch (error) {
+    console.error('Error deleting topic:', error);
+    res.status(500).json({ error: 'Failed to delete topic' });
+  }
+};
