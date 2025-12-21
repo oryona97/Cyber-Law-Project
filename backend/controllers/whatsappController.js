@@ -32,7 +32,7 @@ exports.verifyWebhook = (req, res) => {
 exports.handleMessage = async (req, res) => {
   const body = req.body;
 
-  // console.log('Incoming Webhook:', JSON.stringify(body, null, 2));
+  console.log('Incoming Webhook:', JSON.stringify(body, null, 2));
 
   // Check if this is an event from a WhatsApp page subscription
   if (body.object === 'whatsapp_business_account') {
