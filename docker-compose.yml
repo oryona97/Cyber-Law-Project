@@ -12,6 +12,10 @@ services:
       - DB_NAME=cyberlaw
       - DB_PORT=5432
       - OLLAMA_HOST=http://ollama:11434
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
     volumes:
       - ./backend:/app
       - /app/node_modules

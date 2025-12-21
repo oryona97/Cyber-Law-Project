@@ -1,4 +1,4 @@
-const { Topic, ExpertConfig } = require('../models');
+const { Topic, ExpertConfig, Lawyer } = require('../models');
 
 const seedData = async () => {
   try {
@@ -45,6 +45,16 @@ const seedData = async () => {
       });
       console.log('Seeded Family Law Expert');
     }
+
+    // 3. Create Default Lawyer
+    const [lawyer, createdLawyer] = await Lawyer.findOrCreate({
+      where: { email: 'harvey@specter.com' },
+      defaults: {
+        name: 'Harvey Specter',
+        is_active: true
+      }
+    });
+    if (createdLawyer) console.log('Seeded Default Lawyer: Harvey Specter');
 
   } catch (error) {
     console.error('Error seeding data:', error);

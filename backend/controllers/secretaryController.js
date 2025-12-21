@@ -1,5 +1,6 @@
 const { Lead, Lawyer, User, Topic } = require('../models');
 const { Op } = require('sequelize');
+const emailService = require('../services/emailService');
 
 // TODO: Integrate Nodemailer for email notifications
 
@@ -49,7 +50,13 @@ exports.assignLawyer = async (req, res) => {
   const { lawyer_id } = req.body;
 
   try {
-    const lead = await Lead.findByPk(id);
+    // Fetch lead with details for email
+    const lead = await Lead.findByPk(id, {
+      include: [
+        { model: User },
+        { model: Topic }
+      ]
+    });
     if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
     const lawyer = await Lawyer.findByPk(lawyer_id);
@@ -61,7 +68,14 @@ exports.assignLawyer = async (req, res) => {
       status: 'assigned'
     });
 
-    // TODO: Send Email to Lawyer
+    // Send Email Notification
+    await emailService.sendAssignmentEmail(lawyer.email, {
+      topic: lead.Topic?.name || 'General Legal Issue',
+      urgency: lead.urgency,
+      summary: lead.summary,
+      userName: lead.User?.name || 'Unknown',
+      userPhone: lead.User?.whatsapp_number
+    });
 
     res.json({ message: 'Lawyer assigned successfully', lead });
   } catch (error) {
