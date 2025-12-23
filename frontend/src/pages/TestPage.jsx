@@ -5,7 +5,7 @@ const TestPage = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
-  const testNumber = "TEST_BROWSER_USER"; 
+  const testNumber = "972500000000"; // Fixed number for simulator
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -15,10 +15,38 @@ const TestPage = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Poll for new messages every 2 seconds
+  useEffect(() => {
+    fetchHistory();
+    const interval = setInterval(fetchHistory, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await axios.get(`http://localhost:5001/api/admin/simulator/history/${testNumber}`);
+      setMessages(res.data);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    }
+  };
+
+  const clearHistory = async () => {
+    if (!window.confirm("Are you sure you want to clear the chat history?")) return;
+    try {
+      await axios.delete(`http://localhost:5001/api/admin/simulator/history/${testNumber}`);
+      setMessages([]);
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      alert('Failed to clear history');
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMsg = { sender: 'user', text: input };
+    // Optimistic UI update (optional, but polling handles it too)
+    const userMsg = { sender: 'user', text: input, created_at: new Date().toISOString() };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
 
@@ -36,18 +64,13 @@ const TestPage = () => {
           }]
         }]
       });
-
-      // Simulate a delay for "thinking"
-      setTimeout(fetchHistory, 1500);
+      
+      // Force immediate fetch after send
+      setTimeout(fetchHistory, 500);
 
     } catch (error) {
       console.error('Error sending message:', error);
     }
-  };
-
-  const fetchHistory = async () => {
-    // Mock response for now as described in previous turn
-    setMessages(prev => [...prev, { sender: 'system', text: '✅ Message processed by backend. (Check logs or Admin Dashboard for Lead creation)' }]);
   };
 
   const handleKeyPress = (e) => {
@@ -58,11 +81,16 @@ const TestPage = () => {
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-8 col-lg-6">
-          <div className="d-flex align-items-center mb-3">
-             <div className="bg-success rounded-circle p-2 me-2 text-white d-flex align-items-center justify-content-center" style={{width: 40, height: 40}}>
-               <i className="bi bi-whatsapp"></i>
-             </div>
-             <h4 className="mb-0">WhatsApp Simulator</h4>
+          <div className="d-flex align-items-center mb-3 justify-content-between">
+            <div className="d-flex align-items-center">
+              <div className="bg-success rounded-circle p-2 me-2 text-white d-flex align-items-center justify-content-center" style={{width: 40, height: 40}}>
+                <i className="bi bi-whatsapp"></i>
+              </div>
+              <h4 className="mb-0">WhatsApp Simulator</h4>
+            </div>
+            <button className="btn btn-outline-danger btn-sm" onClick={clearHistory}>
+              <i className="bi bi-trash me-1"></i> Clear
+            </button>
           </div>
 
           <div className="chat-container shadow-sm border">

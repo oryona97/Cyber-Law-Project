@@ -17,4 +17,10 @@ router.post('/topics', adminController.createTopic);
 // Deactivate a Topic
 router.delete('/topics/:id', adminController.deleteTopic);
 
+// Simulator: Get History
+router.get('/simulator/history/:phone', adminController.getSimulatorHistory);
+
+// Simulator: Clear History
+router.delete('/simulator/history/:phone', adminController.clearSimulatorHistory);
+
 module.exports = router;

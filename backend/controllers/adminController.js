@@ -1,4 +1,81 @@
-const { Topic, ExpertConfig } = require('../models');
+const { Topic, ExpertConfig, User, Conversation, Message } = require('../models');
+const { Op } = require('sequelize');
+
+/**
+ * GET /api/admin/simulator/history/:phone
+ * Fetch chat history for the simulator based on phone number
+ */
+exports.getSimulatorHistory = async (req, res) => {
+  const { phone } = req.params;
+
+  try {
+    const user = await User.findOne({ where: { whatsapp_number: phone } });
+    if (!user) {
+      return res.json([]); // No user yet, return empty history
+    }
+
+    // Find the most recent active or waiting conversation
+    const conversation = await Conversation.findOne({
+      where: { 
+        user_id: user.id 
+      },
+      order: [['created_at', 'DESC']]
+    });
+
+    if (!conversation) {
+      return res.json([]);
+    }
+
+    const messages = await Message.findAll({
+      where: { conversation_id: conversation.id },
+      order: [['created_at', 'ASC']]
+    });
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Error fetching simulator history:', error);
+    res.status(500).json({ error: 'Failed to fetch history' });
+  }
+};
+
+/**
+ * DELETE /api/admin/simulator/history/:phone
+ * Clear all chat history for the simulator user
+ */
+exports.clearSimulatorHistory = async (req, res) => {
+  const { phone } = req.params;
+
+  try {
+    const user = await User.findOne({ where: { whatsapp_number: phone } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Find all conversations for this user
+    const conversations = await Conversation.findAll({
+      where: { user_id: user.id }
+    });
+    
+    const conversationIds = conversations.map(c => c.id);
+
+    if (conversationIds.length > 0) {
+      // Delete Messages first
+      await Message.destroy({
+        where: { conversation_id: { [Op.in]: conversationIds } }
+      });
+
+      // Delete Conversations
+      await Conversation.destroy({
+        where: { id: { [Op.in]: conversationIds } }
+      });
+    }
+
+    res.json({ message: 'History cleared successfully' });
+  } catch (error) {
+    console.error('Error clearing history:', error);
+    res.status(500).json({ error: 'Failed to clear history' });
+  }
+};
 
 /**
  * GET /api/admin/topics

@@ -1,28 +1,15 @@
-const { Topic, ExpertConfig, Lawyer } = require('../models');
+const { connectDB } = require('../config/database');
+const { ExpertConfig, Topic } = require('../models');
 
-const seedData = async () => {
-  try {
-    // 1. Create Topics
-    const [cyberTopic, createdCyber] = await Topic.findOrCreate({
-      where: { name: 'CyberLaw' },
-      defaults: { 
-        description: 'Legal issues related to internet, data privacy, and hacking.',
-        is_active: true
-      }
-    });
+const updatePrompts = async () => {
+  await connectDB();
 
-    const [familyTopic, createdFamily] = await Topic.findOrCreate({
-      where: { name: 'Family Law' },
-      defaults: {
-        description: 'Divorce, custody, and inheritance issues.',
-        is_active: true
-      }
-    });
-
-    // 2. Create Expert Configs (Personas)
-    if (createdCyber) {
-      await ExpertConfig.create({
-        topic_id: cyberTopic.id,
+  // 1. Update CyberLaw Prompt
+  const cyberTopic = await Topic.findOne({ where: { name: 'CyberLaw' } });
+  if (cyberTopic) {
+    const cyberConfig = await ExpertConfig.findOne({ where: { topic_id: cyberTopic.id } });
+    if (cyberConfig) {
+      await cyberConfig.update({
         title: 'Cyber Security Intake Specialist',
         system_prompt: `You are a Cyber Law Intake Specialist. Your job is NOT to give generic advice, but to gather specific facts to prepare a case file for a senior attorney.
         
@@ -40,12 +27,16 @@ const seedData = async () => {
         `,
         max_depth: 6
       });
-      console.log('Seeded CyberLaw Expert');
+      console.log('UPDATED: CyberLaw Prompt');
     }
+  }
 
-    if (createdFamily) {
-      await ExpertConfig.create({
-        topic_id: familyTopic.id,
+  // 2. Update Family Law Prompt
+  const familyTopic = await Topic.findOne({ where: { name: 'Family Law' } });
+  if (familyTopic) {
+    const familyConfig = await ExpertConfig.findOne({ where: { topic_id: familyTopic.id } });
+    if (familyConfig) {
+      await familyConfig.update({
         title: 'Family Law Intake Specialist',
         system_prompt: `You are a Family Law Intake Specialist. Your goal is to gather the necessary context for a divorce or custody case consultation.
 
@@ -61,22 +52,11 @@ const seedData = async () => {
         `,
         max_depth: 6
       });
-      console.log('Seeded Family Law Expert');
+      console.log('UPDATED: Family Law Prompt');
     }
-
-    // 3. Create Default Lawyer
-    const [lawyer, createdLawyer] = await Lawyer.findOrCreate({
-      where: { email: 'harvey@specter.com' },
-      defaults: {
-        name: 'Harvey Specter',
-        is_active: true
-      }
-    });
-    if (createdLawyer) console.log('Seeded Default Lawyer: Harvey Specter');
-
-  } catch (error) {
-    console.error('Error seeding data:', error);
   }
+
+  process.exit();
 };
 
-module.exports = seedData;
+updatePrompts();
