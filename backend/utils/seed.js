@@ -34,6 +34,7 @@ const seedData = async () => {
 
         STRATEGY:
         - Ask ONE question at a time.
+        - Keep responses VERY SHORT (1-2 sentences max).
         - If the user is vague, ask for clarification immediately.
         - Be professional but direct. 
         - Do not provide long legal explanations; focus on fact-finding.
@@ -56,6 +57,7 @@ const seedData = async () => {
 
         STRATEGY:
         - Be empathetic but efficient.
+        - Keep responses VERY SHORT (1-2 sentences max).
         - Ask one question at a time.
         - Prioritize safety: If violence is mentioned, urge them to contact police immediately, but continue the intake if safe.
         `,

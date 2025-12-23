@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const SecretaryPage = () => {
   const [activeTab, setActiveTab] = useState('leads'); // 'leads' or 'lawyers'
+  const [leadFilter, setLeadFilter] = useState('unassigned'); // 'unassigned' or 'assigned'
   const [leads, setLeads] = useState([]);
   const [lawyers, setLawyers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,7 @@ const SecretaryPage = () => {
     try {
       await axios.post(`http://localhost:5001/api/secretary/leads/${leadId}/assign`, { lawyer_id: lawyerId });
       // Optimistic update
-      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: 'assigned', Lawyer: lawyers.find(law => law.id == lawyerId) } : l));
+      setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: 'assigned', lawyer_id: lawyerId, Lawyer: lawyers.find(law => law.id == lawyerId) } : l));
       alert('Lawyer assigned successfully!');
     } catch (error) {
       alert('Error assigning lawyer');
@@ -62,6 +63,11 @@ const SecretaryPage = () => {
     }
   };
 
+  const unassignedLeads = leads.filter(l => l.status !== 'assigned' && !l.lawyer_id);
+  const assignedLeads = leads.filter(l => l.status === 'assigned' || l.lawyer_id);
+
+  const displayedLeads = leadFilter === 'unassigned' ? unassignedLeads : assignedLeads;
+
   if (loading) return <div className="text-center mt-5"><div className="spinner-border text-primary"></div></div>;
 
   return (
@@ -75,7 +81,7 @@ const SecretaryPage = () => {
               className={`nav-link ${activeTab === 'leads' ? 'active' : ''}`} 
               onClick={() => setActiveTab('leads')}
             >
-              Leads
+              Leads Management
             </button>
           </li>
           <li className="nav-item">
@@ -91,66 +97,85 @@ const SecretaryPage = () => {
       
       {/* LEADS TAB */}
       {activeTab === 'leads' && (
-        <div className="row g-4">
-          {leads.length === 0 && <p className="text-center text-muted">No leads found.</p>}
-          {leads.map(lead => (
-            <div key={lead.id} className="col-lg-6">
-              <div className="card h-100">
-                <div className="card-header d-flex justify-content-between align-items-center">
-                  <span className="badge bg-primary rounded-pill">{lead.Topic?.name}</span>
-                  <span className={`badge ${lead.urgency === 'High' ? 'badge-urgent' : 'badge-normal'}`}>
-                    {lead.urgency || 'Normal'} Priority
-                  </span>
-                </div>
-                <div className="card-body">
-                  <div className="d-flex align-items-center mb-3">
-                    <div className="bg-light rounded-circle p-2 me-3 text-center" style={{width: '40px', height: '40px'}}>
-                      <i className="bi bi-person-fill text-muted"></i>
-                    </div>
-                    <div>
-                      <h5 className="card-title mb-0">{lead.User?.name || 'Unknown User'}</h5>
-                      <small className="text-muted">{lead.User?.whatsapp_number}</small>
-                    </div>
-                  </div>
+        <>
+          <div className="d-flex justify-content-center mb-4">
+            <div className="btn-group">
+              <button 
+                className={`btn ${leadFilter === 'unassigned' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setLeadFilter('unassigned')}
+              >
+                Unassigned Leads <span className="badge bg-light text-dark ms-1">{unassignedLeads.length}</span>
+              </button>
+              <button 
+                className={`btn ${leadFilter === 'assigned' ? 'btn-primary' : 'btn-outline-primary'}`}
+                onClick={() => setLeadFilter('assigned')}
+              >
+                Assigned Leads <span className="badge bg-light text-dark ms-1">{assignedLeads.length}</span>
+              </button>
+            </div>
+          </div>
 
-                  <div className="bg-light p-3 rounded mb-3 border-start border-4 border-warning">
-                    <h6 className="text-muted text-uppercase small fw-bold mb-1">AI Summary</h6>
-                    <p className="card-text mb-0">{lead.summary}</p>
+          <div className="row g-4">
+            {displayedLeads.length === 0 && <p className="text-center text-muted">No {leadFilter} leads found.</p>}
+            {displayedLeads.map(lead => (
+              <div key={lead.id} className="col-lg-6">
+                <div className="card h-100">
+                  <div className="card-header d-flex justify-content-between align-items-center">
+                    <span className="badge bg-primary rounded-pill">{lead.Topic?.name}</span>
+                    <span className={`badge ${lead.urgency === 'High' ? 'badge-urgent' : 'badge-normal'}`}>
+                      {lead.urgency || 'Normal'} Priority
+                    </span>
                   </div>
-                  
-                  <hr className="my-3"/>
-                  
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="text-muted small">
-                      Created: {new Date(lead.created_at).toLocaleDateString()}
+                  <div className="card-body">
+                    <div className="d-flex align-items-center mb-3">
+                      <div className="bg-light rounded-circle p-2 me-3 text-center" style={{width: '40px', height: '40px'}}>
+                        <i className="bi bi-person-fill text-muted"></i>
+                      </div>
+                      <div>
+                        <h5 className="card-title mb-0">{lead.User?.name || 'Unknown User'}</h5>
+                        <small className="text-muted">{lead.User?.whatsapp_number}</small>
+                      </div>
+                    </div>
+
+                    <div className="bg-light p-3 rounded mb-3 border-start border-4 border-warning">
+                      <h6 className="text-muted text-uppercase small fw-bold mb-1">AI Summary</h6>
+                      <p className="card-text mb-0">{lead.summary}</p>
                     </div>
                     
-                    {lead.status === 'assigned' ? (
-                      <div className="text-success fw-bold">
-                        <i className="bi bi-check-circle-fill me-1"></i>
-                        Assigned to {lead.Lawyer?.name}
+                    <hr className="my-3"/>
+                    
+                    <div className="d-flex justify-content-between align-items-center">
+                      <div className="text-muted small">
+                        Created: {new Date(lead.created_at).toLocaleDateString()}
                       </div>
-                    ) : (
-                      <div className="d-flex align-items-center">
-                        <select 
-                          className="form-select form-select-sm me-2"
-                          style={{maxWidth: '150px'}}
-                          onChange={(e) => assignLawyer(lead.id, e.target.value)}
-                          defaultValue=""
-                        >
-                          <option value="" disabled>Assign Lawyer...</option>
-                          {lawyers.map(l => (
-                            <option key={l.id} value={l.id}>{l.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
+                      
+                      {lead.status === 'assigned' || lead.lawyer_id ? (
+                        <div className="text-success fw-bold">
+                          <i className="bi bi-check-circle-fill me-1"></i>
+                          Assigned to {lead.Lawyer?.name}
+                        </div>
+                      ) : (
+                        <div className="d-flex align-items-center">
+                          <select 
+                            className="form-select form-select-sm me-2"
+                            style={{maxWidth: '150px'}}
+                            onChange={(e) => assignLawyer(lead.id, e.target.value)}
+                            defaultValue=""
+                          >
+                            <option value="" disabled>Assign Lawyer...</option>
+                            {lawyers.map(l => (
+                              <option key={l.id} value={l.id}>{l.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* LAWYERS TAB */}

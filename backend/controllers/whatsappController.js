@@ -36,7 +36,8 @@ exports.handleMessage = async (req, res) => {
 
   // Check if this is an event from a WhatsApp page subscription
   if (body.object === 'whatsapp_business_account') {
-    
+    res.sendStatus(200); // Acknowledge receipt immediately to prevent timeouts
+
     try {
       // Iterate over each entry
       for (const entry of body.entry) {
@@ -50,6 +51,19 @@ exports.handleMessage = async (req, res) => {
 
             if (textBody) {
                console.log(`Received message from ${from}: ${textBody}`);
+
+               // --- RESET COMMAND ---
+               if (textBody.trim().toLowerCase() === '/reset') {
+                 const userToReset = await User.findOne({ where: { whatsapp_number: from } });
+                 if (userToReset) {
+                   await Conversation.destroy({ 
+                     where: { user_id: userToReset.id } 
+                   });
+                   await whatsappService.sendMessage(from, "Conversation history has been reset. Say 'Hello' to start over.");
+                   console.log(`Reset conversation for ${from}`);
+                 }
+                 continue; 
+               }
 
                // 1. Find or Create User
                const [user, created] = await User.findOrCreate({
@@ -192,7 +206,7 @@ exports.handleMessage = async (req, res) => {
                     });
 
                     // Ask for Contact
-                    const contactMsg = "Based on our conversation, I believe you need a human lawyer. Please provide your Name and Phone Number so we can contact you.";
+                    const contactMsg = "Based on our conversation, I believe you need a human lawyer. Please provide your Name so we can contact you.";
                     await whatsappService.sendMessage(from, contactMsg);
                     await Message.create({ conversation_id: conversation.id, sender: 'ai', text: contactMsg });
                     
@@ -228,8 +242,6 @@ exports.handleMessage = async (req, res) => {
     } catch (error) {
       console.error('Error processing webhook:', error);
     }
-
-    res.sendStatus(200); // Acknowledge receipt immediately
   } else {
     res.sendStatus(404);
   }
