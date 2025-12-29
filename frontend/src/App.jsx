@@ -49,11 +49,6 @@ const Navbar = () => {
                 <i className="bi bi-inbox me-1"></i> Secretary
               </Link>
             </li>
-            <li className="nav-item">
-              <Link className={`nav-link ${isActive('/test')}`} to="/test">
-                <i className="bi bi-phone me-1"></i> Simulator
-              </Link>
-            </li>
           </ul>
         </div>
       </div>
@@ -71,7 +66,7 @@ const Home = () => (
         </p>
         
         <div className="row g-4">
-          <div className="col-md-4">
+          <div className="col-md-6">
             <Link to="/admin" className="text-decoration-none">
               <div className="card h-100 p-4 border-0 shadow-sm hover-effect">
                 <div className="display-4 text-primary mb-3"><i className="bi bi-gear"></i></div>
@@ -80,21 +75,12 @@ const Home = () => (
               </div>
             </Link>
           </div>
-          <div className="col-md-4">
+          <div className="col-md-6">
             <Link to="/secretary" className="text-decoration-none">
               <div className="card h-100 p-4 border-0 shadow-sm hover-effect">
                 <div className="display-4 text-warning mb-3"><i className="bi bi-inbox"></i></div>
                 <h5 className="text-dark">Leads</h5>
                 <p className="text-muted small">Review and assign incoming cases.</p>
-              </div>
-            </Link>
-          </div>
-          <div className="col-md-4">
-            <Link to="/test" className="text-decoration-none">
-              <div className="card h-100 p-4 border-0 shadow-sm hover-effect">
-                <div className="display-4 text-success mb-3"><i className="bi bi-whatsapp"></i></div>
-                <h5 className="text-dark">Simulator</h5>
-                <p className="text-muted small">Test the chatbot flow.</p>
               </div>
             </Link>
           </div>
