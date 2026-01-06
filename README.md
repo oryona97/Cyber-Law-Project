@@ -29,7 +29,7 @@ A full-stack web application designed to provide legal consultation through AI a
 
 ### 1. Clone the Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/oryona97/Cyber-Law-Project.git
 cd Cyber-Law-Project
 ```
 
